@@ -190,7 +190,7 @@ async function startServer() {
   app.get('/api/employees', (req, res) => {
     try {
       const employees = db.prepare(`
-        e.*, 
+        SELECT e.*, 
         (SELECT COALESCE(SUM(chapter), 0) FROM work_logs WHERE employee_id = e.id AND status = 'APPROVED') as total_chapters,
         (SELECT COALESCE(SUM(nominal), 0) FROM work_logs WHERE employee_id = e.id AND status = 'APPROVED') as total_earnings
         FROM employees e

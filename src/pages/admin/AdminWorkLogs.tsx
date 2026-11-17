@@ -51,6 +51,16 @@ export const AdminWorkLogs: React.FC = () => {
     e.preventDefault();
     if (!selectedLog) return;
 
+    if (actionType === 'match' && !targetEmployeeId) {
+      alert('Silakan pilih karyawan terdaftar terlebih dahulu.');
+      return;
+    }
+
+    if (actionType === 'register' && !newNickname.trim()) {
+      alert('Nickname baru wajib diisi.');
+      return;
+    }
+
     try {
       const res = await fetch(`/api/work-logs/${selectedLog.id}/verify`, {
         method: 'POST',
