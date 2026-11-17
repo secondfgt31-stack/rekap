@@ -6,11 +6,27 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
   const [nickname, setNickname] = useState('');
   const [role, setRole] = useState<Role>('Translator');
   const [title, setTitle] = useState('');
-  const [chapter, setChapter] = useState('');
+  const [chapters, setChapters] = useState<string[]>(['']);
   const [workDate, setWorkDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+
+  const handleChapterChange = (index: number, value: string) => {
+    const newChapters = [...chapters];
+    newChapters[index] = value;
+    setChapters(newChapters);
+  };
+
+  const addChapterField = () => {
+    setChapters([...chapters, '']);
+  };
+
+  const removeChapterField = (index: number) => {
+    if (chapters.length === 1) return;
+    const newChapters = chapters.filter((_, i) => i !== index);
+    setChapters(newChapters);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,30 +35,32 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
     setErrorMessage('');
 
     try {
-      const res = await fetch('/api/work-logs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          nickname,
-          role,
-          title,
-          chapter: Number(chapter),
-          work_date: workDate
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Gagal mengirim laporan');
-
-      if (data.status === 'PENDING_REVIEW') {
-        setSuccessMessage('Laporan berhasil dikirim! Namun nickname Anda tidak terdaftar persis di sistem dan ditandai untuk verifikasi admin (Pending Review).');
-      } else {
-        setSuccessMessage('Laporan pekerjaan berhasil dikirim, tercatat di database, dan notifikasi dikirim ke Discord!');
+      const validChapters = chapters.map(c => Number(c)).filter(c => !isNaN(c) && c > 0);
+      if (validChapters.length === 0) {
+        throw new Error('Masukkan setidaknya satu nomor chapter yang valid');
       }
 
+      for (const ch of validChapters) {
+        const res = await fetch('/api/work-logs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nickname,
+            role,
+            title,
+            chapter: ch,
+            work_date: workDate
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Gagal mengirim laporan');
+      }
+
+      setSuccessMessage('Laporan pekerjaan berhasil dikirim!');
       setNickname('');
       setTitle('');
-      setChapter('');
+      setChapters(['']);
     } catch (err: any) {
       setErrorMessage(err.message || 'Terjadi kesalahan sistem');
     } finally {
@@ -116,37 +134,58 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center space-x-1.5">
-                <BookOpen className="w-4 h-4 text-indigo-400" />
-                <span>Judul Komik</span>
-              </label>
-              <input
-                type="text"
-                required
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Contoh: Solo Leveling Season 2"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center space-x-1.5">
+              <BookOpen className="w-4 h-4 text-indigo-400" />
+              <span>Judul Komik</span>
+            </label>
+            <input
+              type="text"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Contoh: Solo Leveling Season 2"
+              className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+            />
+          </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center space-x-1.5">
-                <Hash className="w-4 h-4 text-indigo-400" />
-                <span>Jumlah Chapter</span>
-              </label>
-              <input
-                type="number"
-                min="1"
-                required
-                value={chapter}
-                onChange={(e) => setChapter(e.target.value)}
-                placeholder="Contoh: 5"
-                className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
-              />
+          <div>
+            <label className="block text-sm font-medium text-slate-300 mb-2 flex items-center space-x-1.5">
+              <Hash className="w-4 h-4 text-indigo-400" />
+              <span>Chapter</span>
+            </label>
+            <div className="space-y-3">
+              {chapters.map((ch, idx) => (
+                <div key={idx} className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={ch}
+                    onChange={(e) => handleChapterChange(idx, e.target.value)}
+                    placeholder={`Nomor Chapter (cth: ${10 + idx})`}
+                    className="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-4 py-2.5 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-colors"
+                  />
+                  {chapters.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeChapterField(idx)}
+                      className="p-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                      title="Hapus Chapter"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+              ))}
             </div>
+            <button
+              type="button"
+              onClick={addChapterField}
+              className="mt-3 text-xs font-semibold text-indigo-400 hover:text-indigo-300 flex items-center space-x-1 transition-colors"
+            >
+              <span>+ Chapter Lain</span>
+            </button>
           </div>
 
           <div>

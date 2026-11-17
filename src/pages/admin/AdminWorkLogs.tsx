@@ -41,8 +41,13 @@ export const AdminWorkLogs: React.FC = () => {
 
   const handleOpenVerify = (log: WorkLog) => {
     setSelectedLog(log);
-    setActionType('match');
-    setTargetEmployeeId(employees[0]?.id || '');
+    if (employees.length === 0) {
+      setActionType('register');
+      setTargetEmployeeId('');
+    } else {
+      setActionType('match');
+      setTargetEmployeeId(employees[0].id);
+    }
     setNewNickname(log.nickname_input);
     setVerifyModalOpen(true);
   };
