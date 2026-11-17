@@ -11,6 +11,8 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [discordFormatMessage, setDiscordFormatMessage] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const handleChapterChange = (index: number, value: string) => {
     const newChapters = [...chapters];
@@ -33,6 +35,8 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
     setLoading(true);
     setSuccessMessage('');
     setErrorMessage('');
+    setDiscordFormatMessage('');
+    setCopied(false);
 
     try {
       const validChapters = chapters.map(c => Number(c)).filter(c => !isNaN(c) && c > 0);
@@ -57,15 +61,36 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
         if (!res.ok) throw new Error(data.error || 'Gagal mengirim laporan');
       }
 
-      setSuccessMessage('Laporan pekerjaan berhasil dikirim!');
+      const sortedCh = [...validChapters].sort((a, b) => a - b);
+      let chapterStr = '';
+      if (sortedCh.length === 1) {
+        chapterStr = `Chapter ${sortedCh[0]}`;
+      } else {
+        const minCh = sortedCh[0];
+        const maxCh = sortedCh[sortedCh.length - 1];
+        chapterStr = `Chapter ${minCh}-${maxCh}`;
+      }
+
+      const titleSlug = title.trim().replace(/\s+/g, '-');
+      const discordText = `#${titleSlug}, ${role}, ${chapterStr} Done, <@807916985831784459>`;
+      setDiscordFormatMessage(discordText);
+      setSuccessMessage('Laporan berhasil dikirim dan tercatat di Catatan Laporan (Logs)!');
       setNickname('');
       setTitle('');
       setChapters(['']);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err: any) {
       setErrorMessage(err.message || 'Terjadi kesalahan sistem');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopyDiscord = () => {
+    if (!discordFormatMessage) return;
+    navigator.clipboard.writeText(discordFormatMessage);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
   };
 
   return (
@@ -90,6 +115,34 @@ export const PublicLaporan: React.FC<{ onNavigate: (tab: string) => void }> = ({
             <div className="bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 p-4 rounded-xl flex items-start space-x-3">
               <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
               <div className="text-sm">{successMessage}</div>
+            </div>
+          )}
+
+          {discordFormatMessage && (
+            <div className="space-y-4 animate-fadeIn">
+              <div className="bg-indigo-500/10 border border-indigo-500/30 p-5 rounded-2xl space-y-3 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-indigo-300">Format Pesan untuk Discord (#report-by-dc):</span>
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={handleCopyDiscord}
+                      className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold cursor-pointer transition-all shadow-lg shadow-indigo-600/30 flex items-center space-x-1.5"
+                    >
+                      <span>Salin Teks</span>
+                    </button>
+                    {copied && (
+                      <div className="absolute -top-10 right-0 bg-emerald-600 text-white text-xs px-3 py-1.5 rounded-xl shadow-xl flex items-center space-x-1.5 animate-bounce whitespace-nowrap z-10 border border-emerald-400/30">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-200" />
+                        <span>Berhasil Disalin!</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-slate-950 p-4 rounded-xl font-mono text-xs text-indigo-200 select-all border border-indigo-500/20 break-all">
+                  {discordFormatMessage}
+                </div>
+              </div>
             </div>
           )}
 

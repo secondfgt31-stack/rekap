@@ -52,7 +52,7 @@ export const AdminWorkLogs: React.FC = () => {
     setVerifyModalOpen(true);
   };
 
-  const handleVerifySubmit = async (e: React.FormEvent) => {
+  const handleVerifySubmit = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!selectedLog) return;
 
@@ -180,21 +180,23 @@ export const AdminWorkLogs: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="py-3.5 px-4 text-center space-x-2">
+                    <td className="py-3.5 px-4 text-center space-x-2 whitespace-nowrap">
                       {log.status === 'PENDING_REVIEW' && (
                         <button
+                          type="button"
                           onClick={() => handleOpenVerify(log)}
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all"
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-xl text-xs font-semibold shadow-md shadow-indigo-600/30 transition-all cursor-pointer"
                         >
                           Verifikasi
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => handleDeleteLog(log.id)}
-                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors"
+                        className="p-2 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-colors cursor-pointer inline-flex items-center justify-center"
                         title="Hapus Laporan"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4 pointer-events-none" />
                       </button>
                     </td>
                   </tr>

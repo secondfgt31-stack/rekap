@@ -8,8 +8,8 @@ export const PublicLogs: React.FC = () => {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('All');
   const [statusFilter, setStatusFilter] = useState<string>('All');
-  const [month, setMonth] = useState<string>(String(new Date().getMonth() + 1));
-  const [year, setYear] = useState<string>(String(new Date().getFullYear()));
+  const [month, setMonth] = useState<string>('');
+  const [year, setYear] = useState<string>('');
 
   const fetchLogs = async () => {
     setLoading(true);
@@ -84,6 +84,7 @@ export const PublicLogs: React.FC = () => {
             onChange={(e) => setMonth(e.target.value)}
             className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
           >
+            <option value="">Semua Bulan</option>
             {Array.from({ length: 12 }, (_, i) => (
               <option key={i + 1} value={i + 1}>
                 {new Date(0, i).toLocaleString('id-ID', { month: 'long' })}
@@ -96,6 +97,7 @@ export const PublicLogs: React.FC = () => {
             onChange={(e) => setYear(e.target.value)}
             className="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
           >
+            <option value="">Semua Tahun</option>
             <option value="2026">2026</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
