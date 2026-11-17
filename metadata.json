@@ -1,0 +1,6 @@
+{
+  "name": "Comic Payroll Management System",
+  "description": "Production-ready web application for managing comic translators and editors job reports, automated payroll calculations, Discord integration, and admin dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
