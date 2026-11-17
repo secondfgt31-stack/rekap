@@ -364,7 +364,7 @@ async function startServer() {
 
       const chapterNum = Number(chapter);
       if (isNaN(chapterNum) || chapterNum <= 0) {
-        return res.status(400).json({ error: 'Jumlah chapter harus berupa angka positif' });
+        return res.status(400).json({ error: 'Nomor chapter harus berupa angka positif' });
       }
 
       // Check if employee exists by exact nickname match
@@ -375,8 +375,13 @@ async function startServer() {
       const rate = rateRow ? rateRow.rate_per_chapter : (role === 'Solo' ? 6000 : 3000);
 
       const status = employee ? 'APPROVED' : 'PENDING_REVIEW';
-      const nominal = employee ? chapterNum * rate : 0; // PENDING_REVIEW nominal is 0 until approved
+      const quantity = 1; // Each chapter entry counts as 1 chapter unit
+      const nominal = employee ? quantity * rate : 0; // PENDING_REVIEW nominal is 0 until approved
       const targetWorkDate = work_date || new Date().toISOString().split('T')[0];
+
+      const formattedTitle = title.toLowerCase().includes('ch') || title.toLowerCase().includes('chapter')
+        ? title
+        : `${title} - Ch. ${chapterNum}`;
 
       const stmt = db.prepare(`
         INSERT INTO work_logs (employee_id, nickname_input, role_input, title, chapter, nominal, snapshot_rate, status, work_date, submitted_at)
@@ -387,8 +392,8 @@ async function startServer() {
         employee ? employee.id : null,
         nickname,
         role,
-        title,
-        chapterNum,
+        formattedTitle,
+        quantity,
         nominal,
         rate,
         status,
@@ -401,7 +406,7 @@ async function startServer() {
         sendDiscordNotification('NEW_REPORT', {
           nickname,
           role,
-          title,
+          title: formattedTitle,
           chapter: chapterNum,
           payrate: rate,
           estimated_salary: nominal,
@@ -411,7 +416,7 @@ async function startServer() {
         sendDiscordNotification('PENDING_NICKNAME', {
           nickname,
           role,
-          title,
+          title: formattedTitle,
           chapter: chapterNum,
           status: 'PENDING REVIEW'
         });

@@ -56,15 +56,8 @@ export const AdminWorkLogs: React.FC = () => {
     e.preventDefault();
     if (!selectedLog) return;
 
-    if (actionType === 'match' && !targetEmployeeId) {
-      alert('Silakan pilih karyawan terdaftar terlebih dahulu.');
-      return;
-    }
-
-    if (actionType === 'register' && !newNickname.trim()) {
-      alert('Nickname baru wajib diisi.');
-      return;
-    }
+    const finalEmployeeId = targetEmployeeId || employees[0]?.id || 1;
+    const finalNewNickname = newNickname.trim() || selectedLog.nickname_input;
 
     try {
       const res = await fetch(`/api/work-logs/${selectedLog.id}/verify`, {
@@ -72,8 +65,8 @@ export const AdminWorkLogs: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: actionType,
-          employee_id: targetEmployeeId,
-          new_nickname: newNickname
+          employee_id: finalEmployeeId,
+          new_nickname: finalNewNickname
         })
       });
 
@@ -214,8 +207,8 @@ export const AdminWorkLogs: React.FC = () => {
 
       {/* Verification Modal */}
       {verifyModalOpen && selectedLog && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-5 shadow-2xl">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4 z-50 pointer-events-auto">
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 w-full max-w-lg space-y-5 shadow-2xl relative z-50 pointer-events-auto">
             <div>
               <h3 className="text-lg font-bold text-white">Verifikasi Nickname Bermasalah</h3>
               <p className="text-sm text-slate-400 mt-1">
@@ -223,7 +216,7 @@ export const AdminWorkLogs: React.FC = () => {
               </p>
             </div>
 
-            <form onSubmit={handleVerifySubmit} className="space-y-4">
+            <div className="space-y-4">
               <div className="space-y-2">
                 <label className="flex items-center space-x-3 bg-slate-800/60 p-3 rounded-xl border border-slate-700 cursor-pointer">
                   <input
@@ -298,18 +291,19 @@ export const AdminWorkLogs: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setVerifyModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-medium"
+                  className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-medium cursor-pointer"
                 >
                   Batal
                 </button>
                 <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-lg shadow-indigo-600/30"
+                  type="button"
+                  onClick={handleVerifySubmit}
+                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-lg shadow-indigo-600/30 cursor-pointer"
                 >
                   Proses Verifikasi
                 </button>
               </div>
-            </form>
+            </div>
           </div>
         </div>
       )}
