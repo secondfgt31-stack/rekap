@@ -777,12 +777,19 @@ async function startServer() {
     }
   });
 
-  // Setup Vite middleware for development
-  const vite = await createViteServer({
-    server: { middlewareMode: true, hmr: false },
-    appType: 'spa',
-  });
-  app.use(vite.middlewares);
+  // Setup static serving for production or Vite middleware for development
+  if (process.env.NODE_ENV === 'production') {
+    app.use(express.static(path.join(__dirname, 'dist')));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+    });
+  } else {
+    const vite = await createViteServer({
+      server: { middlewareMode: true, hmr: false },
+      appType: 'spa',
+    });
+    app.use(vite.middlewares);
+  }
 
   const PORT = 3000;
   app.listen(PORT, '0.0.0.0', () => {
